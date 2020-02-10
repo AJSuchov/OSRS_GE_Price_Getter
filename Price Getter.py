@@ -1,10 +1,11 @@
 from openpyxl import load_workbook #Import workbook
 from openpyxl import Workbook #Create and import workbook
 import time
+import decimal, random
 from copy import copy, deepcopy
 from operator import itemgetter
 import bs4 as bs
-import urllib.request
+import urllib.request, urllib.error
 
 ###########################################################################################
 ############# Retrieve excel file to read
@@ -27,14 +28,23 @@ max_row=sheet.max_row
 max_column=sheet.max_column
 
 ################################################################################
-
-def soupCollector(url, iterator):
-    time.sleep(0.01)
-    sauce = urllib.request.urlopen(url).read()
-    soup = bs.BeautifulSoup(sauce,'lxml')
-    #print(soup.find_all('h3'))
-    for h3 in soup.find_all('h3'):
-        print(h3.text + iterator)
+def soupCollector(url, iterator, halt):
+    try:
+        time.sleep(halt)
+        sauce = urllib.request.urlopen(url).read()
+        soup = bs.BeautifulSoup(sauce,'lxml')
+        title = soup.title.string
+        #print(soup.find_all('h3'))
+        if soup.title.string == "RuneScape Oldschool - Grand Exchange - Prices, Trade, Market Movers":
+               soupCollector(url, iterator, halt) 
+        else:
+            for h3 in soup.find_all('h3'):
+                print(title)
+                print(h3.text + iterator)
+    except urllib.error.HTTPError as e:
+        print(e.__dict__)
+    except urllib.error.URLError as e:
+        print(e.__dict__)
 
 def retriever(start,end):
     alist = []
@@ -61,11 +71,11 @@ if __name__ == '__main__':
 
     for item in itemInfo:
         i=i+1
-        j=j+1
-        if j == 21:
-            time.sleep(3)
-            j = 0
-            print(str(j) + " This is reset to 0 and wait 3 seconds")
+##        if j == 21:
+##            time.sleep(3)
+##            j = 0
+##            print(str(j) + " This is reset to 0 and wait 3 seconds")
+        range_num = float(decimal.Decimal(random.randrange(5,10)))
         url = item[2]
-        soupCollector(url,str(i))
+        soupCollector(url,str(i), range_num)
 
